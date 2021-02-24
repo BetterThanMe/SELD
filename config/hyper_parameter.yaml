@@ -1,0 +1,6 @@
+learning_rate: 1e-4
+weight_decay: 1e-4
+number_steps: 20
+batch_size_train: 16
+batch_size_valid: 16
+interval_valid: 4

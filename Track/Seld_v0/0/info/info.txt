@@ -1,0 +1,11 @@
+
+-------24_02_0--------
+Name model: Seld_v0
+Max learning rate: 0.0001
+Weight decay: 0.0001
+Number steps: 20
+Batch size: 16
+Interval valid: 4
+
+Total time train = 0:00:46.203664
+---------------

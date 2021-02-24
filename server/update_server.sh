@@ -1,0 +1,1 @@
+python3 /home/ad/PycharmProjects/Sound_processing/venv/m/server/update_server.py
