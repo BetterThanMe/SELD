@@ -21,7 +21,7 @@ def scp(host, item_: pathlib.Path):
 
 for item in data_dir.iterdir():
     if item.name != 'data' and item.name != 'config' and item.name != 'server'\
-            and item.name != 'Track':
+            and item.name != 'Track' and ('.git' not in item.name):
         print(item.name)
         scp(host='aimenext', item_=item)
         scp(host='aiotlab', item_=item)
