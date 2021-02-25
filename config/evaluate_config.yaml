@@ -3,4 +3,4 @@ model_name: seldv0
 input_shape: [600, 64, 7]
 weight_path:
 batch_size: 4
-file_path: prepare_evaluate/metric.txt
+file_path: Track/metric.txt

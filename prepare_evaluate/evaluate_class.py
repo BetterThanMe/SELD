@@ -26,7 +26,8 @@ class MultiOutputTest:
                                                                                              using_2020=True)
 
         # print out the valid result
-        metrics_string = now.strftime("%Y-%m-%d %H:%M:%S with fold: {} \n".format(self.fold_set))
+        metrics_string = now.strftime("%Y-%m-%d %H:%M:%S: Model {} with fold: {} \n".format(self.model.name,
+                                                                                            self.fold_set))
         metrics_string += '\nMetric 2019: Sed Er = {:.4f} F1 = {:.2f} ~ Doa Er = {:.4f} Fr = {:.4f}' \
                           ''.format(metric_2019[0], metric_2019[1] * 100, metric_2019[2],
                                     metric_2019[3] * 100)
