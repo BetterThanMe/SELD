@@ -4,15 +4,19 @@ from parameter import get_params
 from prepare_train.train_class import TrainTest, TrainMultiOutput
 
 import yaml
+import tensorflow as tf
 
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 # GET DATA
 params = get_params('4')
 data_train = get_data(kind_data='train', params=params)
 data_valid = get_data(kind_data='valid', params=params)
 
+
 # GET MODEL
-model = get_model(model_name='seldv0', input_shape=[600, 64, 7], params=params)
+model = get_model(model_name='seldv2', input_shape=[600, 64, 7], params=params)
 
 # TRAINING
 with open('config/hyper_parameter.yaml', 'r') as f:
@@ -27,5 +31,5 @@ train_machine = TrainMultiOutput('Two_tasks', data_train, data_valid, model,
                                  batch_size_train=hyper_parameter['batch_size_train'],
                                  batch_size_valid=hyper_parameter['batch_size_valid'],
                                  interval_valid=hyper_parameter['interval_valid'])
-# train_machine = TrainTest('Two_tasks', data_train, model, num_steps=20, batch_size=16)
+# train_machine = TrainTest('Two_tasks', data_train, model, num_steps=20, batch_size=4)
 train_machine.train()

@@ -50,7 +50,7 @@ class TrainTest:
         self._findLr = FindLearningRate(1e-5, 1e-1, num_steps, self._name, path=self._findLR_path)
         self._global_step = 0
         self._num_step = num_steps
-        self._num_step_per_epoch = self._dataset.data_size // batch_size
+        self._num_step_per_epoch = ceil(self._dataset.data_size / batch_size)
         # Training control
         self._optimizer = tfa.optimizers.AdamW(weight_decay=1e-4, learning_rate=1e-4)
         # Loss weight of sed + loss weight of doa = 1
@@ -128,6 +128,7 @@ class TrainMultiOutput(TrainFlow):
         self.oneCycle = OneCycle(nb=number_steps, max_lr=learning_rate)
         self._batch_size_train = batch_size_train
         self._batch_size_valid = batch_size_valid
+        self._current_step = 0
 
         # data control
         self._dataset_valid = tf.data.Dataset.from_tensor_slices(self._dataset_valid).batch(batch_size_valid)
@@ -135,7 +136,7 @@ class TrainMultiOutput(TrainFlow):
         # metric
         self._interval_valid = interval_valid
         self.validation_machine = Dcase3Validation(threshold_sed=0.5)
-        self._weight_loss = 0.5  # weight between sed_loss(weight_loss) and doa_loss(1 - weight_loss)
+        self._weight_loss = tf.Variable(0.5)  # weight between sed_loss(weight_loss) and doa_loss(1 - weight_loss)
         # Setup metric file
         with open(self._metric_file, 'a') as f:
             f.write(f'\n------------{self._today_times}-------------\n')
@@ -174,16 +175,17 @@ class TrainMultiOutput(TrainFlow):
             sed_output, doa_output = self.model(input_batch, training=True)
             sed_loss = custom_mse(sed_label, sed_output)
             doa_loss = mse_loss_mask(tf.concat((sed_label, doa_label), axis=-1), doa_output)
-            total_loss = self._weight_loss*sed_loss + (1 - self._weight_loss)*doa_loss
+            total_loss = self._weight_loss.value()*sed_loss + (1 - self._weight_loss.value())*doa_loss
         grads = tape.gradient(total_loss, self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
         return sed_loss, doa_loss, total_loss
 
-    def validCalculate(self, step):
+    def validCalculate(self):
+        step = self._current_step
         start_time = time.perf_counter()
         metric_2019, metric_2020, loss = self.validation_machine.validation_seld(self.model, self._dataset_valid)
         # calculate total loss
-        total_loss = self._weight_loss * loss[0] + (1 - self._weight_loss) * loss[1]
+        total_loss = self._weight_loss * loss[0] + (1 - self._weight_loss.value()) * loss[1]
         self.tensorboard('valid', loss[0], loss[1], total_loss, step)
         # print out the valid result
         metrics_string = '\nStep {:d} lr={:.8f}:'.format(step, self.optimizer.lr.numpy())
@@ -216,11 +218,10 @@ class TrainMultiOutput(TrainFlow):
 
     def train(self):
         try:
-            current_step = 0
-            while current_step < self._number_steps:
-                current_step += 1
+            while self._current_step < self._number_steps:
+                self._current_step += 1
                 start_time = time.perf_counter()
-                if current_step % self._number_step_per_epoch == 0:
+                if self._current_step % self._number_step_per_epoch == 0:
                     self._dataset.reset_pointer()
                     self._dataset.shuffle_data()
 
@@ -239,28 +240,17 @@ class TrainMultiOutput(TrainFlow):
                 # update weight and get loss
                 sed_loss, doa_loss, total_loss = self.updateWeight(input_batch, sed_label, doa_label)
                 # tensorboard
-                self.tensorboard('train', sed_loss, doa_loss, total_loss, current_step)
+                self.tensorboard('train', sed_loss, doa_loss, total_loss, self._current_step)
                 # print the result
                 time_train_batch = time.perf_counter() - start_time
                 print('Step {:d} - Lr {:.6f}: Loss Sed {:.6f} Doa {:.6f} - {:.2f}'
-                      .format(current_step, self.optimizer.lr.numpy(), sed_loss, doa_loss, time_train_batch))
+                      .format(self._current_step, self.optimizer.lr.numpy(), sed_loss, doa_loss, time_train_batch))
 
                 # validation
-                if current_step % self._interval_valid == 0:
-                    total_loss_valid = self.validCalculate(current_step)
+                if self._current_step % self._interval_valid == 0:
+                    total_loss_valid = self.validCalculate()
                     # checkpoint when loss is smaller
-                    self.checkPoint.on_epoch_end(self.model, current_step, total_loss_valid)
+                    self.checkPoint.on_epoch_end(self.model, self._current_step, total_loss_valid)
 
         finally:
             self.finish(next_times=True)
-
-
-
-
-
-
-
-
-
-
-

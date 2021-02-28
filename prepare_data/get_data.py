@@ -23,11 +23,11 @@ def get_data(kind_data='train', params=None, fold_set=None):
             train_split = [3, 4, 5, 6]
 
         feat_dir = [data_dir.joinpath('feat_label').joinpath('foa_dev_norm'),
-                    data_dir.joinpath('feat_label_acs').joinpath('foa_dev_norm'),
-                    data_dir.joinpath('feat_label_overlap_ver2').joinpath('foa_dev_norm')]
+                    data_dir.joinpath('feat_label_acs').joinpath('foa_dev_norm')]
+                    # data_dir.joinpath('feat_label_overlap_ver2_part').joinpath('foa_dev_norm')]
         label_dir = [data_dir.joinpath('feat_label').joinpath('foa_dev_label'),
-                     data_dir.joinpath('feat_label_acs').joinpath('foa_dev_label'),
-                     data_dir.joinpath('feat_label_overlap_ver2').joinpath('foa_dev_label')]
+                     data_dir.joinpath('feat_label_acs').joinpath('foa_dev_label')]
+                     # data_dir.joinpath('feat_label_overlap_ver2_part').joinpath('foa_dev_label')]
 
         data_gen = DataRegulator(train_split, label_dir, feat_dir, seq_len=600, seq_hop=5)
 

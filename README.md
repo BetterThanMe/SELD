@@ -2,7 +2,7 @@
 Dcase challenge task 3: Sound Event Localization and Detection
 
 Setup:
-1. export $PYTHONPATH=.../util
+1. export $PYTHONPATH=.../util:.../m
 
   - Let python automatically find util library
 

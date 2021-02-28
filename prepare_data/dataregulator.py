@@ -51,8 +51,6 @@ class DataRegulator:
         for folder in self._feat_dir:
             folder = pathlib.Path(folder)
             for index, file in enumerate(folder.iterdir()):  # eg of filename: fold1_room1_mix001_ov1.npy -> filename[4] = 1
-                if index > 4000:  # limit maximum number of files in each folder is 4000
-                    break
                 if self._iseval is False:
                     if int(file.name[4]) in self._splits:  # check which split the file belongs to
                         self._filename_list.append(file.__str__())
